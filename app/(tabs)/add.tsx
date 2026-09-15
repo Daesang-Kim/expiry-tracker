@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { addItem, updateItem, DEFAULT_NOTIFY_OFFSETS } from "../../src/services/items";
-import { scheduleItemNotifications } from "../../src/services/notifications";
 import { uploadItemThumbnail } from "../../src/services/storage";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -53,10 +52,8 @@ export default function AddItemScreen() {
         createdBy: user.uid,
       });
 
-      let photoUrl: string | null = null;
       if (photoUri && keepPhoto) {
         const thumbnail = await uploadItemThumbnail(user.householdId, itemId, photoUri);
-        photoUrl = thumbnail.url;
         await updateItem(itemId, {
           photoUrl: thumbnail.url,
           photoPath: thumbnail.path,
@@ -64,21 +61,9 @@ export default function AddItemScreen() {
         });
       }
 
-      await scheduleItemNotifications({
-        id: itemId,
-        householdId: user.householdId,
-        name: name.trim(),
-        category: null,
-        expiryDate,
-        quantity: Number(quantity) || 1,
-        photoUrl,
-        photoPath: null,
-        photoSizeBytes: null,
-        notifyOffsets: DEFAULT_NOTIFY_OFFSETS,
-        createdBy: user.uid,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
+      // D-3/D-1/D-day reminders are sent to every household member by a daily
+      // Cloud Function (functions/src/index.ts) based on notifyOffsets above —
+      // no client-side scheduling needed.
       setName("");
       setExpiryDate("");
       setQuantity("1");

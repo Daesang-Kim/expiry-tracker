@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { View, Text, FlatList, StyleSheet, Pressable, Alert } from "react-native";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { subscribeToHouseholdItems, deleteItem, daysUntilExpiry } from "../../src/services/items";
-import { cancelItemNotifications } from "../../src/services/notifications";
 import type { Item } from "../../src/types";
 
 function ExpiryBadge({ days }: { days: number }) {
@@ -36,7 +35,6 @@ export default function HomeScreen() {
         text: "삭제",
         style: "destructive",
         onPress: async () => {
-          await cancelItemNotifications(item.id, item.notifyOffsets);
           await deleteItem(item.id);
         },
       },

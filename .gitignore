@@ -44,3 +44,6 @@ GoogleService-Info.plist
 # generated native folders
 /ios
 /android
+
+# Cloud Functions build output
+functions/lib/

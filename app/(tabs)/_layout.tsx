@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Tabs } from "expo-router";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { purgeExpiredPhotos } from "../../src/services/cleanup";
+import { registerPushToken } from "../../src/services/notifications";
 
 export default function TabsLayout() {
   const { user } = useAuth();
@@ -13,6 +14,12 @@ export default function TabsLayout() {
       purgeExpiredPhotos(user.householdId).catch(() => {});
     }
   }, [user?.householdId]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      registerPushToken(user.uid).catch(() => {});
+    }
+  }, [user?.uid]);
 
   return (
     <Tabs screenOptions={{ headerShown: true }}>
