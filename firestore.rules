@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isHouseholdMember(householdId) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/households/$(householdId)).data.memberIds;
+    }
+
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /households/{householdId} {
+      allow read: if isHouseholdMember(householdId);
+      // Creation and invite-code joins are handled by the app; anyone signed in
+      // can create a household or update memberIds (join by code).
+      allow create: if isSignedIn();
+      allow update: if isHouseholdMember(householdId) ||
+        (isSignedIn() && request.resource.data.inviteCode == resource.data.inviteCode);
+    }
+
+    match /items/{itemId} {
+      allow read, write: if isHouseholdMember(resource.data.householdId);
+      allow create: if isHouseholdMember(request.resource.data.householdId);
+    }
+  }
+}
