@@ -17,10 +17,12 @@ function ExpiryBadge({ days }: { days: number }) {
 export default function HomeScreen() {
   const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.householdId) return;
-    return subscribeToHouseholdItems(user.householdId, setItems);
+    setError(null);
+    return subscribeToHouseholdItems(user.householdId, setItems, (err) => setError(err.message));
   }, [user?.householdId]);
 
   const sorted = useMemo(
@@ -39,6 +41,14 @@ export default function HomeScreen() {
         },
       },
     ]);
+  }
+
+  if (error) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyText}>목록을 불러오지 못했어요.{"\n"}{error}</Text>
+      </View>
+    );
   }
 
   if (sorted.length === 0) {

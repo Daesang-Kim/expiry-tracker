@@ -15,10 +15,15 @@ export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const [household, setHousehold] = useState<Household | null>(null);
   const [usage, setUsage] = useState<StorageUsage | null>(null);
+  const [usageError, setUsageError] = useState<string | null>(null);
   const [cleaning, setCleaning] = useState(false);
 
   const loadUsage = useCallback(() => {
-    if (user?.householdId) getHouseholdStorageUsage(user.householdId).then(setUsage);
+    if (!user?.householdId) return;
+    setUsageError(null);
+    getHouseholdStorageUsage(user.householdId)
+      .then(setUsage)
+      .catch((err) => setUsageError(err instanceof Error ? err.message : String(err)));
   }, [user?.householdId]);
 
   useEffect(() => {
@@ -74,6 +79,8 @@ export default function SettingsScreen() {
             <Text style={styles.cleanupButtonText}>{cleaning ? "정리 중..." : "지금 정리하기"}</Text>
           </Pressable>
         </>
+      ) : usageError ? (
+        <Text style={styles.value}>{usageError}</Text>
       ) : (
         <Text style={styles.value}>불러오는 중...</Text>
       )}

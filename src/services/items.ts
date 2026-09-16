@@ -38,17 +38,22 @@ export async function deleteItem(itemId: string): Promise<void> {
 
 export function subscribeToHouseholdItems(
   householdId: string,
-  onChange: (items: Item[]) => void
+  onChange: (items: Item[]) => void,
+  onError?: (error: Error) => void
 ): () => void {
   const q = query(
     collection(db, ITEMS),
     where("householdId", "==", householdId),
     orderBy("expiryDate", "asc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Item));
-    onChange(items);
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Item));
+      onChange(items);
+    },
+    (error) => onError?.(error)
+  );
 }
 
 export function daysUntilExpiry(expiryDate: string): number {
