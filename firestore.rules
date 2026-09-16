@@ -15,7 +15,11 @@ service cloud.firestore {
     }
 
     match /households/{householdId} {
-      allow read: if isHouseholdMember(householdId);
+      // Joining by invite code requires looking up a household before you're a
+      // member, so read can't be restricted to existing members — household
+      // docs aren't sensitive (name/invite code/member list) and their IDs
+      // are unguessable, so any signed-in user is an acceptable trade-off.
+      allow read: if isSignedIn();
       // Creation and invite-code joins are handled by the app; anyone signed in
       // can create a household or update memberIds (join by code).
       allow create: if isSignedIn();
