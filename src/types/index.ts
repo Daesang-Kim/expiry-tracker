@@ -23,8 +23,13 @@ export interface Item {
   householdId: string;
   name: string;
   category: string | null;
-  expiryDate: string; // ISO date (YYYY-MM-DD)
+  /** ISO date (YYYY-MM-DD). Optional — some items (toilet paper, detergent) are tracked by quantity only. */
+  expiryDate: string | null;
   quantity: number;
+  /** Quantity at or below which the item counts as low stock. Null means quantity isn't tracked as a signal. */
+  lowStockThreshold: number | null;
+  /** Set once a low-stock push has gone out, so the daily check doesn't repeat it every day. Cleared when restocked. */
+  lowStockNotified: boolean;
   /** Download URL of the compressed thumbnail, if the user chose to keep one. */
   photoUrl: string | null;
   /** Storage path for the thumbnail — needed to delete it later. */

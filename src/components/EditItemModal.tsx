@@ -16,31 +16,43 @@ export function EditItemModal({ item, onClose }: Props) {
   const [category, setCategory] = useState<string | null>(null);
   const [expiryDate, setExpiryDate] = useState("");
   const [quantity, setQuantity] = useState("1");
+  const [lowStockThreshold, setLowStockThreshold] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!item) return;
     setName(item.name);
     setCategory(item.category);
-    setExpiryDate(item.expiryDate);
+    setExpiryDate(item.expiryDate ?? "");
     setQuantity(String(item.quantity));
+    setLowStockThreshold(item.lowStockThreshold != null ? String(item.lowStockThreshold) : "");
   }, [item]);
 
   if (!item) return null;
 
   async function handleSave() {
     if (!item) return;
-    if (!name.trim() || !DATE_PATTERN.test(expiryDate)) {
-      Alert.alert("입력 확인", "이름과 유통기한(YYYY-MM-DD)을 확인해주세요.");
+    if (!name.trim()) {
+      Alert.alert("입력 확인", "이름을 입력해주세요.");
+      return;
+    }
+    if (expiryDate && !DATE_PATTERN.test(expiryDate)) {
+      Alert.alert("입력 확인", "유통기한 날짜를 확인해주세요.");
       return;
     }
     setSaving(true);
     try {
+      const newThreshold = lowStockThreshold ? Number(lowStockThreshold) : null;
+      const newQuantity = Number(quantity) || 1;
       await updateItem(item.id, {
         name: name.trim(),
         category,
-        expiryDate,
-        quantity: Number(quantity) || 1,
+        expiryDate: expiryDate || null,
+        quantity: newQuantity,
+        lowStockThreshold: newThreshold,
+        // Restocked above the threshold (or the threshold was removed) — let the
+        // next low-stock dip send a fresh alert instead of staying silenced.
+        lowStockNotified: newThreshold != null && newQuantity <= newThreshold ? item.lowStockNotified : false,
       });
       onClose();
     } catch (err) {
@@ -81,21 +93,31 @@ export function EditItemModal({ item, onClose }: Props) {
           <CategoryPicker value={category} onChange={setCategory} />
           <TextInput
             style={styles.input}
-            placeholder="유통기한 (예: 20260916)"
+            placeholder="유통기한 (선택, 예: 20260916)"
             placeholderTextColor={PLACEHOLDER_COLOR}
             keyboardType="number-pad"
             maxLength={10}
             value={expiryDate}
             onChangeText={(text) => setExpiryDate(formatDateInput(text))}
           />
-          <TextInput
-            style={styles.input}
-            placeholder="수량"
-            placeholderTextColor={PLACEHOLDER_COLOR}
-            keyboardType="number-pad"
-            value={quantity}
-            onChangeText={setQuantity}
-          />
+          <View style={styles.row}>
+            <TextInput
+              style={[styles.input, styles.rowInput]}
+              placeholder="수량"
+              placeholderTextColor={PLACEHOLDER_COLOR}
+              keyboardType="number-pad"
+              value={quantity}
+              onChangeText={setQuantity}
+            />
+            <TextInput
+              style={[styles.input, styles.rowInput]}
+              placeholder="재고 부족 기준 (선택)"
+              placeholderTextColor={PLACEHOLDER_COLOR}
+              keyboardType="number-pad"
+              value={lowStockThreshold}
+              onChangeText={setLowStockThreshold}
+            />
+          </View>
 
           <Pressable style={styles.button} onPress={handleSave} disabled={saving}>
             <Text style={styles.buttonText}>{saving ? "저장 중..." : "저장"}</Text>
@@ -118,6 +140,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
   photo: { width: "100%", height: 180, borderRadius: 8 },
   input: inputStyle,
+  row: { flexDirection: "row", gap: 12 },
+  rowInput: { flex: 1 },
   button: { backgroundColor: "#0E9F6E", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "600" },
   deleteButton: { padding: 12, alignItems: "center" },

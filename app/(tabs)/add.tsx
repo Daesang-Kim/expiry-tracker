@@ -16,6 +16,7 @@ export default function AddItemScreen() {
   const [category, setCategory] = useState<string | null>(null);
   const [expiryDate, setExpiryDate] = useState("");
   const [quantity, setQuantity] = useState("1");
+  const [lowStockThreshold, setLowStockThreshold] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [keepPhoto, setKeepPhoto] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -38,8 +39,12 @@ export default function AddItemScreen() {
 
   async function handleSave() {
     if (!user?.householdId) return;
-    if (!name.trim() || !DATE_PATTERN.test(expiryDate)) {
-      Alert.alert("입력 확인", "이름과 유통기한(YYYY-MM-DD)을 확인해주세요.");
+    if (!name.trim()) {
+      Alert.alert("입력 확인", "이름을 입력해주세요.");
+      return;
+    }
+    if (expiryDate && !DATE_PATTERN.test(expiryDate)) {
+      Alert.alert("입력 확인", "유통기한 날짜를 확인해주세요.");
       return;
     }
     setSaving(true);
@@ -48,8 +53,10 @@ export default function AddItemScreen() {
         householdId: user.householdId,
         name: name.trim(),
         category,
-        expiryDate,
+        expiryDate: expiryDate || null,
         quantity: Number(quantity) || 1,
+        lowStockThreshold: lowStockThreshold ? Number(lowStockThreshold) : null,
+        lowStockNotified: false,
         photoUrl: null,
         photoPath: null,
         photoSizeBytes: null,
@@ -66,13 +73,14 @@ export default function AddItemScreen() {
         });
       }
 
-      // D-3/D-1/D-day reminders are sent to every household member by a daily
-      // Cloud Function (functions/src/index.ts) based on notifyOffsets above —
-      // no client-side scheduling needed.
+      // D-3/D-1/D-day reminders and low-stock alerts are sent to every household
+      // member by a daily Cloud Function (functions/src/index.ts) — no
+      // client-side scheduling needed.
       setName("");
       setCategory(null);
       setExpiryDate("");
       setQuantity("1");
+      setLowStockThreshold("");
       setPhotoUri(null);
       setKeepPhoto(false);
       router.push("/(tabs)");
@@ -88,7 +96,7 @@ export default function AddItemScreen() {
       <Text style={styles.title}>항목 추가</Text>
       <TextInput
         style={styles.input}
-        placeholder="이름 (예: 우유, 세제)"
+        placeholder="이름 (예: 우유, 휴지)"
         placeholderTextColor={PLACEHOLDER_COLOR}
         value={name}
         onChangeText={setName}
@@ -96,21 +104,32 @@ export default function AddItemScreen() {
       <CategoryPicker value={category} onChange={setCategory} />
       <TextInput
         style={styles.input}
-        placeholder="유통기한 (예: 20260916)"
+        placeholder="유통기한 (선택, 예: 20260916)"
         placeholderTextColor={PLACEHOLDER_COLOR}
         keyboardType="number-pad"
         maxLength={10}
         value={expiryDate}
         onChangeText={(text) => setExpiryDate(formatDateInput(text))}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="수량"
-        placeholderTextColor={PLACEHOLDER_COLOR}
-        keyboardType="number-pad"
-        value={quantity}
-        onChangeText={setQuantity}
-      />
+      <View style={styles.row}>
+        <TextInput
+          style={[styles.input, styles.rowInput]}
+          placeholder="수량"
+          placeholderTextColor={PLACEHOLDER_COLOR}
+          keyboardType="number-pad"
+          value={quantity}
+          onChangeText={setQuantity}
+        />
+        <TextInput
+          style={[styles.input, styles.rowInput]}
+          placeholder="재고 부족 기준 (선택)"
+          placeholderTextColor={PLACEHOLDER_COLOR}
+          keyboardType="number-pad"
+          value={lowStockThreshold}
+          onChangeText={setLowStockThreshold}
+        />
+      </View>
+      <Text style={styles.hint}>기준값 이하로 남으면 "재고 부족"으로 표시하고 알려드려요. 휴지·세제처럼 날짜 없이 수량만 챙기고 싶은 항목에 유용해요.</Text>
       <Pressable style={styles.photoButton} onPress={pickPhoto}>
         {photoUri ? (
           <Image source={{ uri: photoUri }} style={styles.photoPreview} />
@@ -135,6 +154,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, gap: 12 },
   title: { fontSize: 24, fontWeight: "700", marginBottom: 8 },
   input: inputStyle,
+  row: { flexDirection: "row", gap: 12 },
+  rowInput: { flex: 1 },
+  hint: { fontSize: 12, color: "#8B8F98", marginTop: -6 },
   photoButton: {
     borderWidth: 1,
     borderColor: "#ccc",

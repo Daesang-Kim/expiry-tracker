@@ -25,7 +25,8 @@ export async function getHouseholdStorageUsage(
     const size = item.photoSizeBytes ?? 0;
     usage.photoCount += 1;
     usage.totalBytes += size;
-    if (-daysUntilExpiry(item.expiryDate) >= retentionDays) {
+    // No expiry date means nothing to retire the photo against — it's kept indefinitely.
+    if (item.expiryDate && -daysUntilExpiry(item.expiryDate) >= retentionDays) {
       usage.staleCount += 1;
       usage.staleBytes += size;
     }
@@ -42,6 +43,7 @@ export async function purgeExpiredPhotos(
   let purged = 0;
 
   for (const item of items) {
+    if (!item.expiryDate) continue;
     if (-daysUntilExpiry(item.expiryDate) < retentionDays) continue;
     if (!item.photoPath) continue;
     await deleteItemThumbnail(item.photoPath);

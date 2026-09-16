@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { View, Text, FlatList, StyleSheet, Pressable, Image, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../src/contexts/AuthContext";
-import { subscribeToHouseholdItems, daysUntilExpiry } from "../../src/services/items";
+import { subscribeToHouseholdItems, daysUntilExpiry, compareItemUrgency, isLowStock } from "../../src/services/items";
 import { EditItemModal } from "../../src/components/EditItemModal";
 import { colors } from "../../src/styles/theme";
 import { ITEM_CATEGORIES } from "../../src/types";
@@ -15,6 +15,16 @@ function ExpiryBadge({ days }: { days: number }) {
   return (
     <View style={[styles.badge, { backgroundColor: bg }]}>
       <Text style={[styles.badgeText, { color: fg }]}>{label}</Text>
+    </View>
+  );
+}
+
+function StockBadge({ item }: { item: Item }) {
+  const low = isLowStock(item);
+  const [bg, fg] = low ? [colors.dangerBg, colors.danger] : [colors.chipBg, colors.textSecondary];
+  return (
+    <View style={[styles.badge, { backgroundColor: bg, borderWidth: low ? 0 : 1, borderColor: colors.chipBorder }]}>
+      <Text style={[styles.badgeText, { color: fg }]}>{item.quantity}개</Text>
     </View>
   );
 }
@@ -33,10 +43,7 @@ export default function HomeScreen() {
     return subscribeToHouseholdItems(user.householdId, setItems, (err) => setError(err.message));
   }, [user?.householdId]);
 
-  const sorted = useMemo(
-    () => [...items].sort((a, b) => a.expiryDate.localeCompare(b.expiryDate)),
-    [items]
-  );
+  const sorted = useMemo(() => [...items].sort(compareItemUrgency), [items]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -112,11 +119,15 @@ export default function HomeScreen() {
               <View style={styles.rowText}>
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.meta}>
-                  {item.category ? `${item.category} · ` : ""}
-                  {item.expiryDate}
+                  {[item.category, item.expiryDate ?? (item.lowStockThreshold != null ? `${item.quantity}개` : null)]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </Text>
               </View>
-              <ExpiryBadge days={daysUntilExpiry(item.expiryDate)} />
+              <View style={styles.badgeStack}>
+                {item.expiryDate && <ExpiryBadge days={daysUntilExpiry(item.expiryDate)} />}
+                {item.lowStockThreshold != null && <StockBadge item={item} />}
+              </View>
             </Pressable>
           )}
         />
@@ -171,6 +182,7 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 2 },
   name: { fontSize: 14.5, fontWeight: "600", color: colors.textPrimary },
   meta: { fontSize: 11.5, color: colors.textMuted },
+  badgeStack: { alignItems: "flex-end", gap: 4 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16 },
   badgeText: { fontWeight: "700", fontSize: 11.5 },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
