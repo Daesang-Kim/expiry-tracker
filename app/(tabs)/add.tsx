@@ -26,7 +26,10 @@ export default function AddItemScreen() {
       return;
     }
     const result = await ImagePicker.launchCameraAsync({ quality: 0.6 });
-    if (!result.canceled) setPhotoUri(result.assets[0].uri);
+    if (!result.canceled) {
+      setPhotoUri(result.assets[0].uri);
+      setKeepPhoto(true); // taking a photo means they want it kept — opt out via the switch instead
+    }
     // NOTE: the captured photo is only kept locally for now — once on-device
     // OCR is wired up, this is where we'll run text recognition on it. The
     // photo is uploaded to Storage only if the user opts in via `keepPhoto`.

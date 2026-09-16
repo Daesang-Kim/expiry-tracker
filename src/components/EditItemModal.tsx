@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
+import { Modal, View, Text, TextInput, Pressable, StyleSheet, Alert, Image } from "react-native";
 import { deleteItem, updateItem } from "../services/items";
 import { DATE_PATTERN, formatDateInput } from "../utils/date";
 import { CategoryPicker } from "./CategoryPicker";
@@ -69,6 +69,7 @@ export function EditItemModal({ item, onClose }: Props) {
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <Text style={styles.title}>항목 수정</Text>
+          {item.photoUrl && <Image source={{ uri: item.photoUrl }} style={styles.photo} />}
           <TextInput style={styles.input} placeholder="이름" value={name} onChangeText={setName} />
           <CategoryPicker value={category} onChange={setCategory} />
           <TextInput
@@ -106,6 +107,7 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
   sheet: { backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 24, gap: 12 },
   title: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
+  photo: { width: "100%", height: 180, borderRadius: 8 },
   input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12 },
   button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "600" },

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable, Image } from "react-native";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { subscribeToHouseholdItems, daysUntilExpiry } from "../../src/services/items";
 import { EditItemModal } from "../../src/components/EditItemModal";
@@ -56,6 +56,11 @@ export default function HomeScreen() {
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <Pressable style={styles.row} onPress={() => setEditingItem(item)}>
+            {item.photoUrl ? (
+              <Image source={{ uri: item.photoUrl }} style={styles.thumbnail} />
+            ) : (
+              <View style={styles.thumbnailPlaceholder} />
+            )}
             <View style={styles.rowText}>
               <View style={styles.nameRow}>
                 <Text style={styles.name}>{item.name}</Text>
@@ -82,7 +87,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "#f5f5f7",
   },
-  rowText: { gap: 2 },
+  thumbnail: { width: 44, height: 44, borderRadius: 8, marginRight: 12 },
+  thumbnailPlaceholder: { width: 44, height: 44, borderRadius: 8, marginRight: 12, backgroundColor: "#e8e8ec" },
+  rowText: { flex: 1, gap: 2 },
   nameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   name: { fontSize: 16, fontWeight: "600" },
   category: {
