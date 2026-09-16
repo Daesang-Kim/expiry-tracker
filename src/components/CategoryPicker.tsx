@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: "#f0f0f0",
   },
-  chipSelected: { backgroundColor: "#2f6fed" },
+  chipSelected: { backgroundColor: "#0E9F6E" },
   chipText: { color: "#555", fontSize: 13 },
   chipTextSelected: { color: "#fff", fontWeight: "600" },
 });

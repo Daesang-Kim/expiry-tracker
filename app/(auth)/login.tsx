@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 24, gap: 12 },
   title: { fontSize: 28, fontWeight: "700", marginBottom: 16 },
   input: inputStyle,
-  button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
+  button: { backgroundColor: "#0E9F6E", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "600" },
-  link: { textAlign: "center", marginTop: 16, color: "#2f6fed" },
+  link: { textAlign: "center", marginTop: 16, color: "#0E9F6E" },
 });

@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "700", marginBottom: 4 },
   subtitle: { color: "#666", marginBottom: 4 },
   input: inputStyle,
-  button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 4 },
+  button: { backgroundColor: "#0E9F6E", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 4 },
   buttonSecondary: { backgroundColor: "#666" },
   buttonText: { color: "#fff", fontWeight: "600" },
   divider: { height: 1, backgroundColor: "#eee", marginVertical: 20 },

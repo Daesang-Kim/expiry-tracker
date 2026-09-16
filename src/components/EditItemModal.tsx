@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
   photo: { width: "100%", height: 180, borderRadius: 8 },
   input: inputStyle,
-  button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
+  button: { backgroundColor: "#0E9F6E", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "600" },
   deleteButton: { padding: 12, alignItems: "center" },
   deleteButtonText: { color: "#e0473e", fontWeight: "600" },

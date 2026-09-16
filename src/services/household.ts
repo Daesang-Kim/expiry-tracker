@@ -55,6 +55,10 @@ export async function joinHouseholdByInviteCode(uid: string, inviteCode: string)
   };
 }
 
+export async function updateHouseholdName(householdId: string, name: string): Promise<void> {
+  await updateDoc(doc(db, HOUSEHOLDS, householdId), { name });
+}
+
 export async function getHousehold(householdId: string): Promise<Household | null> {
   const snap = await getDoc(doc(db, HOUSEHOLDS, householdId));
   if (!snap.exists()) return null;

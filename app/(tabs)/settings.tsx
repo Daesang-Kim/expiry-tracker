@@ -1,7 +1,8 @@
-import { View, Text, Pressable, StyleSheet, Share, Alert } from "react-native";
+import { View, Text, Pressable, StyleSheet, Share, Alert, TextInput } from "react-native";
 import { useCallback, useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../src/contexts/AuthContext";
-import { getHousehold } from "../../src/services/household";
+import { getHousehold, updateHouseholdName } from "../../src/services/household";
 import {
   DEFAULT_PHOTO_RETENTION_DAYS,
   formatBytes,
@@ -9,6 +10,8 @@ import {
   purgeExpiredPhotos,
   type StorageUsage,
 } from "../../src/services/cleanup";
+import { inputStyle, PLACEHOLDER_COLOR } from "../../src/styles/input";
+import { colors } from "../../src/styles/theme";
 import type { Household } from "../../src/types";
 
 export default function SettingsScreen() {
@@ -17,6 +20,9 @@ export default function SettingsScreen() {
   const [usage, setUsage] = useState<StorageUsage | null>(null);
   const [usageError, setUsageError] = useState<string | null>(null);
   const [cleaning, setCleaning] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   const loadUsage = useCallback(() => {
     if (!user?.householdId) return;
@@ -46,13 +52,58 @@ export default function SettingsScreen() {
     }
   }
 
+  function startEditingName() {
+    setNameDraft(household?.name ?? "");
+    setEditingName(true);
+  }
+
+  async function handleSaveName() {
+    if (!household || !nameDraft.trim()) return;
+    setSavingName(true);
+    try {
+      await updateHouseholdName(household.id, nameDraft.trim());
+      setHousehold({ ...household, name: nameDraft.trim() });
+      setEditingName(false);
+    } catch (err) {
+      Alert.alert("변경 실패", err instanceof Error ? err.message : String(err));
+    } finally {
+      setSavingName(false);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>이메일</Text>
       <Text style={styles.value}>{user?.email}</Text>
 
       <Text style={styles.label}>가족 그룹</Text>
-      <Text style={styles.value}>{household?.name ?? "-"}</Text>
+      {editingName ? (
+        <View style={styles.nameEditRow}>
+          <TextInput
+            style={[styles.input, styles.nameInput]}
+            placeholder="가족 그룹 이름"
+            placeholderTextColor={PLACEHOLDER_COLOR}
+            value={nameDraft}
+            onChangeText={setNameDraft}
+            autoFocus
+          />
+          <Pressable style={styles.iconButton} onPress={handleSaveName} disabled={savingName}>
+            <Ionicons name="checkmark" size={20} color={colors.accent} />
+          </Pressable>
+          <Pressable style={styles.iconButton} onPress={() => setEditingName(false)}>
+            <Ionicons name="close" size={20} color={colors.textMuted} />
+          </Pressable>
+        </View>
+      ) : (
+        <View style={styles.nameRow}>
+          <Text style={styles.value}>{household?.name ?? "-"}</Text>
+          {household && (
+            <Pressable style={styles.iconButton} onPress={startEditingName}>
+              <Ionicons name="pencil" size={16} color={colors.textMuted} />
+            </Pressable>
+          )}
+        </View>
+      )}
 
       <Text style={styles.label}>초대 코드</Text>
       <Text style={styles.value}>{household?.inviteCode ?? "-"}</Text>
@@ -93,20 +144,27 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, gap: 4 },
-  label: { color: "#888", marginTop: 16, fontSize: 13 },
-  value: { fontSize: 16, fontWeight: "600" },
-  hint: { color: "#999", fontSize: 12, marginTop: 2 },
-  shareButton: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 12, alignItems: "center", marginTop: 12 },
+  container: { flex: 1, padding: 24, gap: 4, backgroundColor: colors.background },
+  label: { color: colors.textMuted, marginTop: 16, fontSize: 13 },
+  value: { fontSize: 16, fontWeight: "600", color: colors.textPrimary },
+  hint: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  nameEditRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  input: inputStyle,
+  nameInput: { flex: 1, paddingVertical: 8, paddingHorizontal: 10, fontSize: 15 },
+  iconButton: { padding: 6 },
+  shareButton: { backgroundColor: colors.accent, borderRadius: 8, padding: 12, alignItems: "center", marginTop: 12 },
   shareButtonText: { color: "#fff", fontWeight: "600" },
   cleanupButton: {
-    backgroundColor: "#eee",
+    backgroundColor: colors.chipBg,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
     borderRadius: 8,
     padding: 12,
     alignItems: "center",
     marginTop: 10,
   },
-  cleanupButtonText: { color: "#333", fontWeight: "600" },
+  cleanupButtonText: { color: colors.textPrimary, fontWeight: "600" },
   signOutButton: { marginTop: 40, alignItems: "center" },
-  signOutText: { color: "#e0473e", fontWeight: "600" },
+  signOutText: { color: colors.danger, fontWeight: "600" },
 });

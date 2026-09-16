@@ -149,6 +149,6 @@ const styles = StyleSheet.create({
   photoPreview: { width: "100%", height: "100%" },
   switchRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
   switchLabel: { flex: 1, color: "#666", fontSize: 13 },
-  button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
+  button: { backgroundColor: "#0E9F6E", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "600" },
 });

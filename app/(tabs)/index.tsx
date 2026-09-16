@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable, Image } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable, Image, TextInput } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { subscribeToHouseholdItems, daysUntilExpiry } from "../../src/services/items";
 import { EditItemModal } from "../../src/components/EditItemModal";
+import { colors } from "../../src/styles/theme";
+import { ITEM_CATEGORIES } from "../../src/types";
 import type { Item } from "../../src/types";
 
 function ExpiryBadge({ days }: { days: number }) {
   const label = days < 0 ? "만료됨" : days === 0 ? "오늘" : `D-${days}`;
-  const color = days <= 1 ? "#e0473e" : days <= 3 ? "#e0a13e" : "#3e8ee0";
+  const [bg, fg] =
+    days <= 1 ? [colors.dangerBg, colors.danger] : days <= 3 ? [colors.warningBg, colors.warning] : [colors.infoBg, colors.info];
   return (
-    <View style={[styles.badge, { backgroundColor: color }]}>
-      <Text style={styles.badgeText}>{label}</Text>
+    <View style={[styles.badge, { backgroundColor: bg }]}>
+      <Text style={[styles.badgeText, { color: fg }]}>{label}</Text>
     </View>
   );
 }
@@ -20,6 +24,8 @@ export default function HomeScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.householdId) return;
@@ -32,6 +38,15 @@ export default function HomeScreen() {
     [items]
   );
 
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return sorted.filter((item) => {
+      if (category && item.category !== category) return false;
+      if (query && !item.name.toLowerCase().includes(query)) return false;
+      return true;
+    });
+  }, [sorted, search, category]);
+
   if (error) {
     return (
       <View style={styles.empty}>
@@ -40,69 +55,124 @@ export default function HomeScreen() {
     );
   }
 
-  if (sorted.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyText}>아직 등록된 항목이 없어요.{"\n"}추가 탭에서 항목을 등록해보세요.</Text>
-      </View>
-    );
-  }
-
   return (
-    <>
-      <FlatList
-        data={sorted}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => setEditingItem(item)}>
-            {item.photoUrl ? (
-              <Image source={{ uri: item.photoUrl }} style={styles.thumbnail} />
-            ) : (
-              <View style={styles.thumbnailPlaceholder} />
-            )}
-            <View style={styles.rowText}>
-              <View style={styles.nameRow}>
+    <View style={styles.screen}>
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={16} color={colors.textMuted} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="항목 검색"
+          placeholderTextColor={colors.textMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+
+      <View style={styles.chipRow}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={["전체", ...ITEM_CATEGORIES] as const}
+          keyExtractor={(c) => c}
+          contentContainerStyle={{ gap: 8 }}
+          renderItem={({ item: c }) => {
+            const selected = c === "전체" ? category === null : category === c;
+            return (
+              <Pressable
+                style={[styles.chip, selected && styles.chipSelected]}
+                onPress={() => setCategory(c === "전체" ? null : c)}
+              >
+                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{c}</Text>
+              </Pressable>
+            );
+          }}
+        />
+      </View>
+
+      {sorted.length === 0 ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>아직 등록된 항목이 없어요.{"\n"}추가 탭에서 항목을 등록해보세요.</Text>
+        </View>
+      ) : filtered.length === 0 ? (
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>조건에 맞는 항목이 없어요.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <Pressable style={styles.row} onPress={() => setEditingItem(item)}>
+              {item.photoUrl ? (
+                <Image source={{ uri: item.photoUrl }} style={styles.thumbnail} />
+              ) : (
+                <View style={styles.thumbnailPlaceholder} />
+              )}
+              <View style={styles.rowText}>
                 <Text style={styles.name}>{item.name}</Text>
-                {item.category && <Text style={styles.category}>{item.category}</Text>}
+                <Text style={styles.meta}>
+                  {item.category ? `${item.category} · ` : ""}
+                  {item.expiryDate}
+                </Text>
               </View>
-              <Text style={styles.date}>{item.expiryDate}</Text>
-            </View>
-            <ExpiryBadge days={daysUntilExpiry(item.expiryDate)} />
-          </Pressable>
-        )}
-      />
+              <ExpiryBadge days={daysUntilExpiry(item.expiryDate)} />
+            </Pressable>
+          )}
+        />
+      )}
+
       <EditItemModal item={editingItem} onClose={() => setEditingItem(null)} />
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, gap: 8 },
+  screen: { flex: 1, backgroundColor: colors.background },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.cardBg,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: colors.textPrimary, padding: 0 },
+  chipRow: { paddingLeft: 16, paddingVertical: 10 },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: colors.chipBg,
+    borderWidth: 1,
+    borderColor: colors.chipBorder,
+  },
+  chipSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipText: { fontSize: 12.5, fontWeight: "600", color: colors.textSecondary },
+  chipTextSelected: { color: "#fff" },
+  list: { padding: 16, paddingTop: 0, gap: 8 },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 10,
-    backgroundColor: "#f5f5f7",
+    gap: 10,
+    padding: 11,
+    borderRadius: 13,
+    backgroundColor: colors.cardBg,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
   },
-  thumbnail: { width: 44, height: 44, borderRadius: 8, marginRight: 12 },
-  thumbnailPlaceholder: { width: 44, height: 44, borderRadius: 8, marginRight: 12, backgroundColor: "#e8e8ec" },
+  thumbnail: { width: 36, height: 36, borderRadius: 9 },
+  thumbnailPlaceholder: { width: 36, height: 36, borderRadius: 9, backgroundColor: colors.background },
   rowText: { flex: 1, gap: 2 },
-  nameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  name: { fontSize: 16, fontWeight: "600" },
-  category: {
-    fontSize: 11,
-    color: "#666",
-    backgroundColor: "#e8e8ec",
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 8,
-  },
-  date: { color: "#777", fontSize: 13 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { color: "#fff", fontWeight: "700", fontSize: 12 },
+  name: { fontSize: 14.5, fontWeight: "600", color: colors.textPrimary },
+  meta: { fontSize: 11.5, color: colors.textMuted },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16 },
+  badgeText: { fontWeight: "700", fontSize: 11.5 },
   empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  emptyText: { textAlign: "center", color: "#888", lineHeight: 22 },
+  emptyText: { textAlign: "center", color: colors.textMuted, lineHeight: 22 },
 });
