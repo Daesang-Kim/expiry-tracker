@@ -15,6 +15,9 @@ export interface Household {
 
 export type NotificationOffset = 3 | 1 | 0; // days before expiry (0 = D-day)
 
+export const ITEM_CATEGORIES = ["식품", "생활용품", "화장품", "의약품", "기타"] as const;
+export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
+
 export interface Item {
   id: string;
   householdId: string;

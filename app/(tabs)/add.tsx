@@ -5,19 +5,14 @@ import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { addItem, updateItem, DEFAULT_NOTIFY_OFFSETS } from "../../src/services/items";
 import { uploadItemThumbnail } from "../../src/services/storage";
-
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
-/** Strips everything but digits and inserts hyphens as YYYY-MM-DD, so the user only ever types numbers. */
-function formatDateInput(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 8);
-  return [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)].filter(Boolean).join("-");
-}
+import { DATE_PATTERN, formatDateInput } from "../../src/utils/date";
+import { CategoryPicker } from "../../src/components/CategoryPicker";
 
 export default function AddItemScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [name, setName] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
   const [expiryDate, setExpiryDate] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -48,7 +43,7 @@ export default function AddItemScreen() {
       const itemId = await addItem({
         householdId: user.householdId,
         name: name.trim(),
-        category: null,
+        category,
         expiryDate,
         quantity: Number(quantity) || 1,
         photoUrl: null,
@@ -71,6 +66,7 @@ export default function AddItemScreen() {
       // Cloud Function (functions/src/index.ts) based on notifyOffsets above —
       // no client-side scheduling needed.
       setName("");
+      setCategory(null);
       setExpiryDate("");
       setQuantity("1");
       setPhotoUri(null);
@@ -86,7 +82,13 @@ export default function AddItemScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>항목 추가</Text>
-      <TextInput style={styles.input} placeholder="이름 (예: 우유)" value={name} onChangeText={setName} />
+      <TextInput
+        style={styles.input}
+        placeholder="이름 (예: 우유, 세제)"
+        value={name}
+        onChangeText={setName}
+      />
+      <CategoryPicker value={category} onChange={setCategory} />
       <TextInput
         style={styles.input}
         placeholder="유통기한 (예: 20260916)"
