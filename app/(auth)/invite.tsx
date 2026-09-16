@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { createHousehold, joinHouseholdByInviteCode } from "../../src/services/household";
+import { inputStyle, PLACEHOLDER_COLOR } from "../../src/styles/input";
 
 export default function InviteScreen() {
   const { user, setHouseholdId } = useAuth();
@@ -42,6 +43,7 @@ export default function InviteScreen() {
       <TextInput
         style={styles.input}
         placeholder="초대 코드 (예: AB12CD)"
+        placeholderTextColor={PLACEHOLDER_COLOR}
         autoCapitalize="characters"
         value={code}
         onChangeText={setCode}
@@ -56,6 +58,7 @@ export default function InviteScreen() {
       <TextInput
         style={styles.input}
         placeholder="가족 그룹 이름 (예: 우리집)"
+        placeholderTextColor={PLACEHOLDER_COLOR}
         value={householdName}
         onChangeText={setHouseholdName}
       />
@@ -70,7 +73,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 24, gap: 12 },
   title: { fontSize: 28, fontWeight: "700", marginBottom: 4 },
   subtitle: { color: "#666", marginBottom: 4 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12 },
+  input: inputStyle,
   button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 4 },
   buttonSecondary: { backgroundColor: "#666" },
   buttonText: { color: "#fff", fontWeight: "600" },

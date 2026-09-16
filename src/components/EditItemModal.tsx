@@ -3,6 +3,7 @@ import { Modal, View, Text, TextInput, Pressable, StyleSheet, Alert, Image } fro
 import { deleteItem, updateItem } from "../services/items";
 import { DATE_PATTERN, formatDateInput } from "../utils/date";
 import { CategoryPicker } from "./CategoryPicker";
+import { inputStyle, PLACEHOLDER_COLOR } from "../styles/input";
 import type { Item } from "../types";
 
 interface Props {
@@ -70,11 +71,18 @@ export function EditItemModal({ item, onClose }: Props) {
         <View style={styles.sheet}>
           <Text style={styles.title}>항목 수정</Text>
           {item.photoUrl && <Image source={{ uri: item.photoUrl }} style={styles.photo} />}
-          <TextInput style={styles.input} placeholder="이름" value={name} onChangeText={setName} />
+          <TextInput
+            style={styles.input}
+            placeholder="이름"
+            placeholderTextColor={PLACEHOLDER_COLOR}
+            value={name}
+            onChangeText={setName}
+          />
           <CategoryPicker value={category} onChange={setCategory} />
           <TextInput
             style={styles.input}
             placeholder="유통기한 (예: 20260916)"
+            placeholderTextColor={PLACEHOLDER_COLOR}
             keyboardType="number-pad"
             maxLength={10}
             value={expiryDate}
@@ -83,6 +91,7 @@ export function EditItemModal({ item, onClose }: Props) {
           <TextInput
             style={styles.input}
             placeholder="수량"
+            placeholderTextColor={PLACEHOLDER_COLOR}
             keyboardType="number-pad"
             value={quantity}
             onChangeText={setQuantity}
@@ -108,7 +117,7 @@ const styles = StyleSheet.create({
   sheet: { backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 24, gap: 12 },
   title: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
   photo: { width: "100%", height: 180, borderRadius: 8 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12 },
+  input: inputStyle,
   button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "600" },
   deleteButton: { padding: 12, alignItems: "center" },

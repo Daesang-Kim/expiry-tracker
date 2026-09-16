@@ -7,6 +7,7 @@ import { addItem, updateItem, DEFAULT_NOTIFY_OFFSETS } from "../../src/services/
 import { uploadItemThumbnail } from "../../src/services/storage";
 import { DATE_PATTERN, formatDateInput } from "../../src/utils/date";
 import { CategoryPicker } from "../../src/components/CategoryPicker";
+import { inputStyle, PLACEHOLDER_COLOR } from "../../src/styles/input";
 
 export default function AddItemScreen() {
   const { user } = useAuth();
@@ -88,6 +89,7 @@ export default function AddItemScreen() {
       <TextInput
         style={styles.input}
         placeholder="이름 (예: 우유, 세제)"
+        placeholderTextColor={PLACEHOLDER_COLOR}
         value={name}
         onChangeText={setName}
       />
@@ -95,6 +97,7 @@ export default function AddItemScreen() {
       <TextInput
         style={styles.input}
         placeholder="유통기한 (예: 20260916)"
+        placeholderTextColor={PLACEHOLDER_COLOR}
         keyboardType="number-pad"
         maxLength={10}
         value={expiryDate}
@@ -103,6 +106,7 @@ export default function AddItemScreen() {
       <TextInput
         style={styles.input}
         placeholder="수량"
+        placeholderTextColor={PLACEHOLDER_COLOR}
         keyboardType="number-pad"
         value={quantity}
         onChangeText={setQuantity}
@@ -130,7 +134,7 @@ export default function AddItemScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, gap: 12 },
   title: { fontSize: 24, fontWeight: "700", marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12 },
+  input: inputStyle,
   photoButton: {
     borderWidth: 1,
     borderColor: "#ccc",

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
 import { Link } from "expo-router";
 import { useAuth } from "../../src/contexts/AuthContext";
+import { inputStyle, PLACEHOLDER_COLOR } from "../../src/styles/input";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -26,6 +27,7 @@ export default function LoginScreen() {
       <TextInput
         style={styles.input}
         placeholder="이메일"
+        placeholderTextColor={PLACEHOLDER_COLOR}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -34,6 +36,7 @@ export default function LoginScreen() {
       <TextInput
         style={styles.input}
         placeholder="비밀번호"
+        placeholderTextColor={PLACEHOLDER_COLOR}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -51,7 +54,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 24, gap: 12 },
   title: { fontSize: 28, fontWeight: "700", marginBottom: 16 },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12 },
+  input: inputStyle,
   button: { backgroundColor: "#2f6fed", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontWeight: "600" },
   link: { textAlign: "center", marginTop: 16, color: "#2f6fed" },
